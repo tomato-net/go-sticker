@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: stocks-ticker
+namePrefix: stocks-
+
+resources:
+- deployment.yaml
+- service.yaml
+- ingress.yaml
+- secret.yaml
+- namespace.yaml
+# Uncomment if you want to use a static configmap
+# - configmap.yaml
+
+# use config map generator to roll new pods on change
+configMapGenerator:
+- literals:
+  - stock.symbol=MSFT
+  - stock.ndays=7
+  name: server-cm
+
+images:
+- name: server
+  newName: tomatod4r/stock-ticker

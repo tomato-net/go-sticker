@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-cm
+data:
+  stock.symbol: "MSFT"
+  stock.ndays: "7"

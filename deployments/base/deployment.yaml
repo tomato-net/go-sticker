@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  labels:
+    app: server
+spec:
+  selector:
+    matchLabels:
+      app: server
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+        - command:
+            - /server
+          image: server:latest
+          name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+          env:
+            - name: HTTP_PORT
+              value: "8080"
+            - name: SYMBOL
+              valueFrom:
+                configMapKeyRef:
+                  name: server-cm
+                  key: stock.symbol
+            - name: NDAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: server-cm
+                  key: stock.ndays
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api.key
+                  name: server-secret
+          ports:
+            - containerPort: 8080
+              name: http
