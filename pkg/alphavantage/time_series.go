@@ -6,18 +6,17 @@ import (
 	"time"
 )
 
-// TODO: Comment - Override Time to enable unmarshalling
+// Time is an alias of the time.Time type, used to enable unmarshalling of the date keys in time series data.
 type Time time.Time
 
 func (t *Time) UnmarshalText(data []byte) error {
 	format := "2006-01-02"
-	d, err := parseDate(string(data), format)
+	time, err := parseTime(string(data), format)
 	if err != nil {
-		return fmt.Errorf("parseDate: %w", err)
+		return fmt.Errorf("parseTime: %w", err)
 	}
 
-	*t = Time(d)
-
+	*t = Time(time)
 	return nil
 }
 
@@ -25,6 +24,7 @@ func (t Time) String() string {
 	return time.Time(t).String()
 }
 
+// StockData contains data about stock.
 type StockData struct {
 	Open             float64   `json:"1. open,string"`
 	High             float64   `json:"2. high,string"`
@@ -37,8 +37,11 @@ type StockData struct {
 	Time             time.Time `json:"-"`
 }
 
+// TimeSeriesStockData is a collection of StockData with additional time information. This type is returned from the
+// AlphaVantage API in TIME_SERIES API calls.
 type TimeSeriesStockData map[Time]StockData
 
+// Sorted returns a sorted slice of StockData in time descending order. Necessary as Go maps are not sorted.
 func (t TimeSeriesStockData) Sorted() []StockData {
 	times := make([]Time, 0, len(t))
 	for time := range t {
@@ -59,10 +62,10 @@ func (t TimeSeriesStockData) Sorted() []StockData {
 	return sorted
 }
 
-func parseDate(v string, format string) (time.Time, error) {
+func parseTime(v string, format string) (time.Time, error) {
 	t, err := time.Parse(format, v)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("unable to parse date %s: %w", v, err)
+		return time.Time{}, fmt.Errorf("unable to parse time %s: %w", v, err)
 	}
 
 	return t, nil

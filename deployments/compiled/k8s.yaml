@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stocks-ticker
+---
+apiVersion: v1
+data:
+  stock.ndays: "7"
+  stock.symbol: MSFT
+kind: ConfigMap
+metadata:
+  name: stocks-server-cm-c677bh6d2b
+  namespace: stocks-ticker
+---
+apiVersion: v1
+data:
+  api.key: RzhNSURMRUlVQTczSDYzTwo=
+kind: Secret
+metadata:
+  name: stocks-server-secret
+  namespace: stocks-ticker
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: server
+  name: stocks-server
+  namespace: stocks-ticker
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  selector:
+    app: server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: server
+  name: stocks-server
+  namespace: stocks-ticker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+      - command:
+        - /server
+        env:
+        - name: HTTP_PORT
+          value: "8080"
+        - name: SYMBOL
+          valueFrom:
+            configMapKeyRef:
+              key: stock.symbol
+              name: stocks-server-cm-c677bh6d2b
+        - name: NDAYS
+          valueFrom:
+            configMapKeyRef:
+              key: stock.ndays
+              name: stocks-server-cm-c677bh6d2b
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: api.key
+              name: stocks-server-secret
+        image: tomatod4r/stock-ticker:latest
+        imagePullPolicy: Always
+        name: server
+        ports:
+        - containerPort: 8080
+          name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stocks-server-ingress
+  namespace: stocks-ticker
+spec:
+  rules:
+  - host: stocks-ticker-app.test
+    http:
+      paths:
+      - backend:
+          service:
+            name: stocks-server
+            port:
+              name: http
+        path: /
+        pathType: Prefix

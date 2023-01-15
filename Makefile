@@ -24,6 +24,15 @@ docker-push: ## Push docker image with the manager.
 set-image:
 	cd deployments/base && $(KUSTOMIZE) edit set image server=$(IMG)
 
-.PHONY: deploy
-deploy:
-	$(KUBECTL) apply -k deployments/overlays/$(ENV)
+.PHONY: deploy-published
+deploy-published: set-image
+	$(KUBECTL) apply -k deployments/overlays/published
+
+.PHONY: deploy-local
+deploy-local: docker-build set-image minikube-load
+	$(KUBECTL) apply -k deployments/overlays/local
+
+
+.PHONY: minikube-load
+minikube-load:
+	minikube image load $(IMG)

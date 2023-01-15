@@ -16,6 +16,7 @@ const (
 	defaultTimeout = 5 * time.Second
 )
 
+// Client is a client for the AlphaVantage API.
 type Client struct {
 	apiKey     string
 	baseURL    string
@@ -23,13 +24,22 @@ type Client struct {
 	httpClient *http.Client
 }
 
+// ClientOptions is a set of overrides used when creating a new Client.
 type ClientOptions struct {
-	APIKey     string
-	BaseURL    string
-	Retries    int
+	// APIKey is required. Your API key for the AlphaVantage API. New keys can be generated at https://www.alphavantage.co/support/#api-key
+	APIKey string
+
+	// BaseURL is the base URL for the AlphaVantage API. This will default to https://www.alphavantage.co/query
+	BaseURL string
+
+	// Retries is the number of retries the client will make on each request if the request fails. This defaults to zero for no retries.
+	Retries int
+
+	// HTTPClient can be used to set a custom HTTP client on the AlphaVantage client.
 	HTTPClient *http.Client
 }
 
+// NewClient returns a new AlphaVantage client with the given optional overrides. See ClientOptions for the options.
 func NewClient(options ClientOptions) (*Client, error) {
 	if strings.TrimSpace(options.APIKey) == "" {
 		return nil, fmt.Errorf("no API key provided")
@@ -55,6 +65,7 @@ func NewClient(options ClientOptions) (*Client, error) {
 	return client, nil
 }
 
+// Do makes a request to the AlphaVantage API using the given parameters. Prefer to call TimeSeriesDailyAdjusted.
 func (c *Client) Do(ctx context.Context, params url.Values, into interface{}) error {
 	var lastError error
 	for retries := 0; retries <= c.retries; retries++ {

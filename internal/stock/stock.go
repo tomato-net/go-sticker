@@ -3,10 +3,12 @@ package stock
 import (
 	"context"
 	"fmt"
+
 	v1 "github.com/tomato-net/go-sticker/api/v1"
 	"github.com/tomato-net/go-sticker/pkg/alphavantage"
 )
 
+// Repository is used to query stock data about a given stock symbol.
 type Repository struct {
 	client *alphavantage.Client
 }
@@ -17,6 +19,8 @@ func NewRepository(client *alphavantage.Client) *Repository {
 	}
 }
 
+// DailyStockData queries the last N days of stock data for a given symbol and returns that data back in
+// an ordered slice.
 func (r *Repository) DailyStockData(ctx context.Context, symbol string, days int) ([]v1.DatedStock, error) {
 	data, err := r.client.TimeSeriesDailyAdjusted(ctx, alphavantage.TimeSeriesDailyOptions{
 		Symbol: symbol,

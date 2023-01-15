@@ -1,13 +1,16 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	v1 "github.com/tomato-net/go-sticker/api/v1"
 	"github.com/tomato-net/go-sticker/internal/stock"
 	"github.com/tomato-net/go-sticker/pkg/slice"
-	"net/http"
 )
 
+// Handler is a HTTP handler for Gin that returns the last N days of stock data for a given
+// symbol, alongside the average close price for that stock over the same time period.
 func Handler(repo *stock.Repository, symbol string, days int) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		response, err := repo.DailyStockData(ctx, symbol, days)
